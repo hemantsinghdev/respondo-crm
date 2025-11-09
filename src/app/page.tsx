@@ -1,7 +1,7 @@
 import React from "react";
-import { Box, Typography, Paper, Stack } from "@mui/material";
+import { Box, Typography, Paper, Stack} from "@mui/material";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   return (
     <Box p={4}>
       <Typography variant="h4" gutterBottom>Ticket Inbox / Dashboard</Typography>
