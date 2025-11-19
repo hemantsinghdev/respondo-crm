@@ -7,8 +7,6 @@ export default async function ProfilePage() {
   const session = await auth()
   return (
     <Box p={4}>
-      <Typography variant="h4" gutterBottom>{`${session?.user?.email}`}</Typography>
-      <Typography variant="h4" gutterBottom>{`${session?.user?.id}`}</Typography>
       <Typography variant="h4" gutterBottom>{`${session?.user?.name}`}</Typography>
       <Divider/>
       <SignOut/>

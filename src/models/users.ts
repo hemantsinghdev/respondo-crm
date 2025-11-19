@@ -1,20 +1,41 @@
-// models/user.ts
-import mongoose, { Schema, model, models } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
 
-export interface IUser {
+export interface IUser extends Document {
   email: string;
-  name?: string;
-  role: "ADMIN" | "AGENT" | "VIEWER";
-  organizationId: string;
-  createdAt?: Date;
+  name: string;
+  organization?: string;
+  website?: string;
+  address?: string;
+  passwordHash: string;
+  createdAt: Date;
+  comparePassword: (candidate: string) => Promise<boolean>;
 }
 
-const UserSchema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  name: String,
-  role: { type: String, enum: ["ADMIN", "AGENT", "VIEWER"], default: "AGENT" },
-  organizationId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+const UserSchema = new Schema<IUser>(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+    },
+    name: { type: String, required: true },
+    organization: { type: String },
+    website: { type: String },
+    address: { type: String },
+    passwordHash: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  {
+    collection: "users",
+  }
+);
 
-export default models.User || model<IUser>("User", UserSchema);
+UserSchema.methods.comparePassword = function (candidate: string) {
+  return bcrypt.compare(candidate, this.passwordHash);
+};
+
+export default mongoose.models.User ||
+  mongoose.model<IUser>("User", UserSchema);

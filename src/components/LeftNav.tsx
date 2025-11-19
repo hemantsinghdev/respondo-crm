@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 
 export default async function LeftNav() {
   const session = await auth();
-  const name = session?.user?.name?.charAt(0) ?? "?"
+  const name = session?.user?.name?.charAt(0).toUpperCase() ?? "?"
   return (
     <Box width={80} sx={{ borderRight: "1px solid rgba(255,255,255,0.04)" }}>
       <List>

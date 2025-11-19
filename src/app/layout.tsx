@@ -1,6 +1,5 @@
 import React from "react";
 import "./globals.css";
-import Shell from "@/components/Shell";
 import { EmotionCacheProvider, ThemeProvider } from "@/providers";
 
 
@@ -10,7 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <EmotionCacheProvider>
           <ThemeProvider>
-            <Shell>{children}</Shell>
+            {children}
           </ThemeProvider>
         </EmotionCacheProvider>
       </body>
