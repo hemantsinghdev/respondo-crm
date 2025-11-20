@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from "mongoose";
-import bcrypt from "bcryptjs";
 
 export interface IUser extends Document {
   email: string;
@@ -8,8 +7,9 @@ export interface IUser extends Document {
   website?: string;
   address?: string;
   passwordHash: string;
-  createdAt: Date;
-  comparePassword: (candidate: string) => Promise<boolean>;
+
+  nylasGrantId?: string;
+  isEmailConnected: boolean;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -26,16 +26,23 @@ const UserSchema = new Schema<IUser>(
     website: { type: String },
     address: { type: String },
     passwordHash: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
+
+    nylasGrantId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    isEmailConnected: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
   },
   {
     collection: "users",
+    timestamps: true,
   }
 );
-
-UserSchema.methods.comparePassword = function (candidate: string) {
-  return bcrypt.compare(candidate, this.passwordHash);
-};
 
 export default mongoose.models.User ||
   mongoose.model<IUser>("User", UserSchema);

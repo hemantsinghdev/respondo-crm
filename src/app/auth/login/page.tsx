@@ -31,7 +31,7 @@ export default function LoginPage() {
         {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
         <TextField required fullWidth type="email" label="Email" value={email} onChange={(e) => setEmail(e.target.value)} margin="normal" />
         <TextField required fullWidth type="password" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} margin="normal" />
-        <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mt: 2 }}>{loading ? 'Signing in…' : 'Sign in'}</Button>
+        <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mt: 2 }}>{loading ? 'Logging in…' : 'Login'}</Button>
         <Typography variant="body2" sx={{ mt: 2 }}>Don't have an account? <a href="/auth/signup">Sign up</a></Typography>
       </Box>
     </Container>

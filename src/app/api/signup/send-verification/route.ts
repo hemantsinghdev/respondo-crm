@@ -3,7 +3,6 @@ import { connectToDB } from "@/lib/mongoose";
 import VerificationToken from "@/models/verificationToken";
 import { sendVerificationEmail } from "@/lib/resend";
 import crypto from "crypto";
-import message from "@/models/message";
 
 export async function POST(req: Request) {
   await connectToDB();
