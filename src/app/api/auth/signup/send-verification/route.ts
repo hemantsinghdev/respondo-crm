@@ -25,7 +25,18 @@ export async function POST(req: Request) {
   });
   if (tokenCreated) {
     await sendVerificationEmail(email, token);
-    return NextResponse.json({ ok: true });
+
+    // --- DEVELOPMENT ONLY ---
+    const verificationUrl = `${
+      process.env.AUTH_URL
+    }/auth/verify?token=${encodeURIComponent(token)}`;
+    return NextResponse.json({
+      ok: true,
+      verificationLink: verificationUrl, // <-- NEW FIELD
+    });
+    // ------------------------
+
+    // return NextResponse.json({ ok: true });
   } else {
     return NextResponse.json({ ok: false, message: "something went wrong" });
   }
