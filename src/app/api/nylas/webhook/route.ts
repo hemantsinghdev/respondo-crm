@@ -14,23 +14,37 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ error: "No challenge provided" }, { status: 400 });
 }
 
+// Helper to get the correct signature header, regardless of case
+const getSignatureHeader = (req: NextRequest): string | null => {
+  return (
+    req.headers.get("x-nylas-signature") || req.headers.get("X-Nylas-Signature")
+  );
+};
+
 export async function POST(req: NextRequest) {
+  console.log("\n[NYLAS-WEBHOOK] --- Notification POST Received ---");
   try {
+    // 1. Get raw body and signature header
     const rawBody = await req.text();
-    const signature =
-      req.headers.get("x-nylas-signature") ||
-      req.headers.get("X-Nylas-Signature");
+    const signature = getSignatureHeader(req);
     const webhookSecret = process.env.NYLAS_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
-      console.error("NYLAS_WEBHOOK_SECRET is missing");
+      console.error(
+        "[ERROR] NYLAS_WEBHOOK_SECRET is missing. Check environment configuration."
+      );
       return NextResponse.json(
         { error: "Server misconfiguration" },
         { status: 500 }
       );
     }
 
-    // 1. Verify Signature
+    if (!signature) {
+      console.error("[ERROR] Missing X-Nylas-Signature header.");
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
+    // 2. Verify Signature
     // HMAC-SHA256 of the raw body using the webhook secret
     const digest = crypto
       .createHmac("sha256", webhookSecret)
@@ -38,36 +52,46 @@ export async function POST(req: NextRequest) {
       .digest("hex");
 
     if (digest !== signature) {
-      console.error("Invalid Nylas signature");
+      console.error("[ERROR] Invalid Nylas signature. Request rejected.");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    // 2. Parse Body
+    console.log("[VERIFICATION] Signature matched. Request is authentic.");
+
+    // 3. Parse and Extract Payload (Addressing the nested structure)
     const body = JSON.parse(rawBody);
-    const { type, data } = body;
+    const eventContainer = body.data; // The wrapper containing type, source, etc.
+    const eventType = eventContainer.type;
+    const eventData = eventContainer.data.object; // The actual message object
 
-    console.log(`Received Nylas Webhook: ${type}`);
+    console.log(`[EVENT] Processing Event Type: ${eventType}`);
+    console.log(
+      `[EVENT] Delivery Attempt: ${eventContainer.webhook_delivery_attempt}`
+    );
 
-    // 3. Handle Events
-    // Nylas v3 structure usually puts the payload in `data` and the event type in `type`
-    // Note: Nylas webhooks can be batched or single. Check documentation for your specific version.
+    // 4. Handle Events
+    if (eventType === "message.created") {
+      const grantId = eventData.grant_id;
+      const messageId = eventData.id;
 
-    if (type === "message.created") {
-      const grantId = data.grant_id;
-      const messageId = data.object.id; // Or data.id depending on exact trigger version
+      console.log(
+        `[EVENT] Message Created - Grant ID: ${grantId}, Message ID: ${messageId}`
+      );
 
       if (grantId && messageId) {
-        // Run logic asynchronously to not block the webhook response
-        // In production, use a queue (Redis/BullMQ). For simple use, simple async call:
+        // Run logic asynchronously to not block the 200 OK response
         handleMessageCreated(grantId, messageId).catch((err) =>
-          console.error("Background processing failed:", err)
+          console.error("[BACKGROUND] Processing failed:", err)
         );
       }
+    } else {
+      console.log(`[EVENT] Ignoring unhandled event type: ${eventType}`);
     }
 
+    // Always respond 200 OK quickly for successful receipt
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Webhook error:", error);
+    console.error("[CRITICAL] Webhook processing error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

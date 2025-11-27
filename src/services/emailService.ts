@@ -1,7 +1,6 @@
 import { connectToDB } from "@/lib/mongoose";
 import nylas from "@/lib/nylas";
 import { User, Thread, Message, Customer } from "@/models";
-import mongoose from "mongoose";
 
 export async function handleMessageCreated(
   grantId: string,
@@ -9,31 +8,39 @@ export async function handleMessageCreated(
 ) {
   await connectToDB();
 
-  console.log(`Processing message.created for grant ${grantId}`);
+  console.log(
+    `\n[SERVICE] Starting message.created processing for Grant ID: ${grantId}`
+  );
 
   // 1. Find the System User associated with this Nylas Grant
+  console.log(`[DB] Searching for User with nylasGrantId: ${grantId}`);
   const user = await User.findOne({ nylasGrantId: grantId });
   if (!user) {
-    console.error(`No user found for grantId: ${grantId}`);
+    console.error(`[DB] No User found for grantId: ${grantId}. Aborting.`);
     return;
   }
+  console.log(`[DB] Found User: ${user.email} (ID: ${user._id})`);
 
   try {
     // 2. Fetch full message details from Nylas
-    // The webhook only gives us the ID, we need the body, subject, etc.
+    console.log(
+      `[NYLAS API] Fetching full message details for ID: ${nylasMessageId}`
+    );
     const messageResponse = await nylas.messages.find({
       identifier: grantId,
       messageId: nylasMessageId,
     });
 
     const msg = messageResponse.data;
-    if (!msg) return;
+    if (!msg) {
+      console.error(
+        "[NYLAS API] Message details could not be retrieved. Aborting."
+      );
+      return;
+    }
+    console.log(`[NYLAS API] Successfully retrieved message: "${msg}"`);
 
-    // 3. Identify the "Customer"
-    // The "Customer" is the person who is NOT the CRM User.
-    // We check the 'from' and 'to' fields.
-    // Note: This logic assumes 1-on-1 conversations. For multi-party, you might pick the first non-user.
-
+    // 3. Identify the "Customer" (The participant who is NOT the CRM User)
     const allParticipants = [
       ...(msg.from || []),
       ...(msg.to || []),
@@ -47,7 +54,7 @@ export async function handleMessageCreated(
 
     if (!customerParticipant || !customerParticipant.email) {
       console.log(
-        "Could not identify a customer participant (internal email?)"
+        "[CUSTOMER] Could not identify a customer participant (likely internal email or mailing list). Skipping customer logic."
       );
       return;
     }
@@ -56,7 +63,10 @@ export async function handleMessageCreated(
     const customerName =
       customerParticipant.name || customerEmail.split("@")[0];
 
+    console.log(`[CUSTOMER] Identified potential customer: ${customerEmail}`);
+
     // 4. Find or Create Customer
+    console.log(`[DB] Searching for Customer: ${customerEmail}`);
     let customer = await Customer.findOne({
       user: user._id,
       email: customerEmail,
@@ -68,12 +78,22 @@ export async function handleMessageCreated(
         email: customerEmail,
         name: customerName,
       });
-      console.log(`Created new customer: ${customerEmail}`);
+      console.log(
+        `[DB] Created new Customer: ${customer.email} (ID: ${customer._id})`
+      );
+    } else {
+      console.log(
+        `[DB] Found existing Customer: ${customer.email} (ID: ${customer._id})`
+      );
     }
 
     // 5. Find or Create Thread
-    // We use the Nylas Thread ID to sync contexts
+    console.log(
+      `[DB] Searching for Thread with nylasThreadId: ${msg.threadId}`
+    );
     let thread = await Thread.findOne({ nylasThreadId: msg.threadId });
+
+    const messageDate = new Date(msg.date * 1000); // Nylas sends unix timestamp
 
     if (!thread) {
       thread = await Thread.create({
@@ -82,20 +102,28 @@ export async function handleMessageCreated(
         nylasThreadId: msg.threadId,
         subject: msg.subject,
         snippet: msg.snippet,
-        lastMessageDate: new Date(msg.date * 1000), // Nylas sends unix timestamp
+        lastMessageDate: messageDate,
         participantEmails: allParticipants.map((p) => p.email),
         isUnread: msg.unread,
       });
+      console.log(
+        `[DB] Created new Thread (ID: ${thread._id}) for subject: "${thread.subject}"`
+      );
     } else {
       // Update existing thread details
       thread.snippet = msg.snippet || thread.snippet;
-      thread.lastMessageDate = new Date(msg.date * 1000);
+      thread.lastMessageDate = messageDate;
       thread.isUnread = msg.unread || true; // Mark unread on new message
       await thread.save();
+      console.log(
+        `[DB] Updated existing Thread (ID: ${thread._id}). New snippet: "${thread.snippet}"`
+      );
     }
 
     // 6. Save Message
-    // Check if message already exists to be idempotent
+    console.log(
+      `[DB] Checking for existing Message with nylasMessageId: ${msg.id}`
+    );
     const existingMessage = await Message.findOne({ nylasMessageId: msg.id });
 
     if (!existingMessage) {
@@ -109,11 +137,15 @@ export async function handleMessageCreated(
         subject: msg.subject,
         snippet: msg.snippet,
         body: msg.body,
-        date: new Date(msg.date * 1000),
+        date: messageDate,
       });
-      console.log(`Saved message ${msg.id} to thread ${thread._id}`);
+      console.log(
+        `[DB] Saved new Message (ID: ${msg.id}) to Thread ${thread._id}.`
+      );
+    } else {
+      console.log(`[DB] Message ${msg.id} already exists. Skipping save.`);
     }
   } catch (error) {
-    console.error("Error processing Nylas webhook message:", error);
+    console.error("[CRITICAL] Error processing Nylas webhook message:", error);
   }
 }
