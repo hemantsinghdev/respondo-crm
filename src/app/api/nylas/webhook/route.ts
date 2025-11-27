@@ -60,10 +60,8 @@ export async function POST(req: NextRequest) {
 
     // 3. Parse and Extract Payload (Addressing the nested structure)
     const body = JSON.parse(rawBody);
-    console.log("body: ", body);
     const eventContainer = body.data; // The wrapper containing type, source, etc.
     const eventData = eventContainer.object; // The actual message object
-    console.log("body.data.object : ", eventData);
     const eventType = body.type;
 
     console.log(`[EVENT] Processing Event Type: ${eventType}`);
@@ -80,7 +78,9 @@ export async function POST(req: NextRequest) {
 
       if (grantId && messageId) {
         // Run logic asynchronously to not block the 200 OK response
-        handleMessageCreated(grantId, messageId).catch((err) =>
+
+        //TODO MAJOR: Can push this into a dedicated queue like redis/BullMq and give response immediately
+        await handleMessageCreated(grantId, messageId).catch((err) =>
           console.error("[BACKGROUND] Processing failed:", err)
         );
       }
