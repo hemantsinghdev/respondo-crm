@@ -60,15 +60,14 @@ export async function POST(req: NextRequest) {
 
     // 3. Parse and Extract Payload (Addressing the nested structure)
     const body = JSON.parse(rawBody);
+    console.log("body: ", body);
     const eventContainer = body.data; // The wrapper containing type, source, etc.
-    console.log("Full DATA : ", eventContainer);
-    const eventType = eventContainer.type;
-    const eventData = eventContainer.data.object; // The actual message object
+    const eventData = eventContainer.object; // The actual message object
+    console.log("body.data.object : ", eventData);
+    const eventType = body.type;
 
     console.log(`[EVENT] Processing Event Type: ${eventType}`);
-    console.log(
-      `[EVENT] Delivery Attempt: ${eventContainer.webhook_delivery_attempt}`
-    );
+    console.log(`[EVENT] Delivery Attempt: ${body.webhook_delivery_attempt}`);
 
     // 4. Handle Events
     if (eventType === "message.created") {
