@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
     // 3. Parse and Extract Payload (Addressing the nested structure)
     const body = JSON.parse(rawBody);
     const eventContainer = body.data; // The wrapper containing type, source, etc.
+    console.log("Full DATA : ", eventContainer);
     const eventType = eventContainer.type;
     const eventData = eventContainer.data.object; // The actual message object
 
