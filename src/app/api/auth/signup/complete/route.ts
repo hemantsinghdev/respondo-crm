@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongoose";
-import VerificationToken from "@/models/verificationToken";
-import User from "@/models/users";
+import { VerificationToken, User } from "@/models";
 import { hashPassword } from "@/utils/hash";
 
 export async function POST(req: Request) {

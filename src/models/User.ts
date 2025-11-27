@@ -7,9 +7,10 @@ export interface IUser extends Document {
   website?: string;
   address?: string;
   passwordHash: string;
-
   nylasGrantId?: string;
   isEmailConnected: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UserSchema = new Schema<IUser>(

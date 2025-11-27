@@ -1,5 +1,5 @@
 import { connectToDB } from "@/lib/mongoose";
-import User from "@/models/users";
+import { User } from "@/models";
 
 export async function isEmailConnected(userId: string) {
   try {

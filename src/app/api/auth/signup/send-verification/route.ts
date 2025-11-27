@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongoose";
-import VerificationToken from "@/models/verificationToken";
+import { VerificationToken } from "@/models";
 import { sendVerificationEmail } from "@/lib/resend";
 import crypto from "crypto";
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     // --- DEVELOPMENT ONLY ---
     const verificationUrl = `${
-      process.env.AUTH_URL
+      process.env.BASE_URL
     }/auth/verify?token=${encodeURIComponent(token)}`;
     return NextResponse.json({
       ok: true,

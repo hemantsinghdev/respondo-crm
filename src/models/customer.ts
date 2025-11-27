@@ -1,24 +1,27 @@
-// models/customer.ts
-import mongoose, { Schema, model, models } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-export interface ICustomer {
+export interface ICustomer extends Document {
+  user: mongoose.Types.ObjectId;
   email: string;
   name?: string;
-  phone?: string;
-  metadata?: any;
-  organizationId: string;
-  createdAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const CustomerSchema = new Schema<ICustomer>({
-  email: { type: String, required: true },
-  name: String,
-  phone: String,
-  metadata: Schema.Types.Mixed,
-  organizationId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+const CustomerSchema = new Schema<ICustomer>(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    email: { type: String, required: true },
+    name: { type: String },
+  },
+  { timestamps: true }
+);
 
-CustomerSchema.index({ email: 1, organizationId: 1 }, { unique: true });
+// Ensure a user doesn't have duplicate customers with same email
+CustomerSchema.index({ user: 1, email: 1 }, { unique: true });
 
-export default models.Customer || model<ICustomer>("Customer", CustomerSchema);
+const Customer =
+  mongoose.models.Customer ||
+  mongoose.model<ICustomer>("Customer", CustomerSchema);
+
+export default Customer;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import nylas from "@/lib/nylas";
 import { connectToDB } from "@/lib/mongoose";
-import User from "@/models/users";
+import { User } from "@/models";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
