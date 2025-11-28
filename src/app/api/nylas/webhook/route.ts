@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { handleMessageCreated } from "@/services/emailService";
+import { handleMessageCreated } from "@/services/emailServices";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);

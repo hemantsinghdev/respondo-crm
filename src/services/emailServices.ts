@@ -137,6 +137,7 @@ export async function handleMessageCreated(
         subject: msg.subject,
         snippet: msg.snippet,
         body: msg.body,
+        attchments: msg.attachments,
         date: messageDate,
       });
       console.log(
