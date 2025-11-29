@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { Attachment } from "nylas";
 
 export interface IMessage extends Document {
   thread: mongoose.Types.ObjectId;
@@ -10,6 +11,8 @@ export interface IMessage extends Document {
   subject: string;
   snippet: string;
   body: string;
+  summary: string;
+  attachments: Attachment[];
   date: Date;
   createdAt: Date;
 }
@@ -29,6 +32,16 @@ const MessageSchema = new Schema<IMessage>(
     bcc: [{ name: String, email: String }],
     subject: { type: String },
     snippet: { type: String },
+    summary: { type: String },
+    attachments: [
+      {
+        id: String,
+        filename: String,
+        contentType: String,
+        size: Number,
+        contentId: String,
+      },
+    ],
     body: { type: String },
     date: { type: Date, required: true },
   },

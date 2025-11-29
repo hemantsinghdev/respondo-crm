@@ -12,15 +12,15 @@ import {
   Chip,
 } from "@mui/material";
 
-function EmailBody({ html }: { html: string }) {
-  return (
-    <div
-      className="email-content"
-      style={{ overflow: "hidden", maxWidth: "100%" }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-}
+// function EmailBody({ html }: { html: string }) {
+//   return (
+//     <div
+//       className="email-content"
+//       style={{ overflow: "hidden", maxWidth: "100%" }}
+//       dangerouslySetInnerHTML={{ __html: html }}
+//     />
+//   );
+// }
 
 export default async function TicketDetailPage({
   params,
@@ -130,7 +130,9 @@ export default async function TicketDetailPage({
 
                 <Divider sx={{ mb: 2 }} />
 
-                <EmailBody html={msg.body || `[No HTML body found, snippet: ${msg.snippet}]`} />
+                <Typography variant="inherit" color="white">
+                  {isAgent ? msg.body : msg.summary}
+                </Typography>
               </Paper>
             </Box>
           );

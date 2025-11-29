@@ -17,7 +17,7 @@
     "@mui/material": "^7.3.5",
     "@mui/material-nextjs": "^7.3.5",
     "@tanstack/react-query": "^5.90.7",
-    "@upstash/redis": "^1.35.7",
+    "@upstash/qstash": "^2.8.4",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.63.0",

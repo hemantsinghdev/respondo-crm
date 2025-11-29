@@ -1,6 +1,8 @@
 import { connectToDB } from "@/lib/mongoose";
 import nylas from "@/lib/nylas";
+import qstash from "@/lib/qstash";
 import { User, Thread, Message, Customer } from "@/models";
+import { IMessage } from "@/models/Message";
 
 export async function handleMessageCreated(
   grantId: string,
@@ -120,14 +122,18 @@ export async function handleMessageCreated(
       );
     }
 
-    // 6. Save Message
+    // 6. Process Message
     console.log(
       `[DB] Checking for existing Message with nylasMessageId: ${msg.id}`
     );
     const existingMessage = await Message.findOne({ nylasMessageId: msg.id });
 
     if (!existingMessage) {
-      await Message.create({
+      console.log(
+        `[QSTASH] Enqueuing message processing task for ID: ${msg.id}`
+      );
+
+      const payload = {
         thread: thread._id,
         nylasMessageId: msg.id,
         from: msg.from,
@@ -137,16 +143,29 @@ export async function handleMessageCreated(
         subject: msg.subject,
         snippet: msg.snippet,
         body: msg.body,
-        attchments: msg.attachments,
+        attachments: msg.attachments,
         date: messageDate,
+      };
+
+      await qstash.publishJSON({
+        url: `${process.env.BASE_URL}/api/worker/message-processing`,
+        body: payload,
+        retries: 5,
       });
-      console.log(
-        `[DB] Saved new Message (ID: ${msg.id}) to Thread ${thread._id}.`
-      );
     } else {
       console.log(`[DB] Message ${msg.id} already exists. Skipping save.`);
     }
   } catch (error) {
     console.error("[CRITICAL] Error processing Nylas webhook message:", error);
   }
+}
+
+export async function saveProcessedMessage(payload: IMessage) {
+  await connectToDB();
+
+  await Message.create(payload);
+
+  console.log(
+    `[DB] Saved new Message (ID: ${payload.nylasMessageId}) to Thread ${payload.thread}.`
+  );
 }
