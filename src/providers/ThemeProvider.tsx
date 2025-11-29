@@ -9,6 +9,9 @@ const theme = createTheme({
     primary: { main: "#00E6C9" },
     text: { primary: "#e6eef1", secondary: "#9aa6ab" },
   },
+  shape: {
+    borderRadius: "5px",
+  }
 });
 
 export default function ThemeProviderClient({

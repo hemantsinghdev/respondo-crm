@@ -147,19 +147,15 @@ export async function handleMessageCreated(
         date: messageDate,
       };
 
-      try {
-        const response = await qstash.publishJSON({
-          url: `https://respondo-crm.vercel.app/api/worker/message-processing`,
-          body: payload,
-          retries: 3,
-        });
+      const response = await qstash.publishJSON({
+        url: `${process.env.BASE_URL}/api/worker/message-processing`,
+        body: payload,
+        retries: 3,
+        retryDelay: "40000",
+      });
 
-        // 2. LOG THE RESPONSE FROM QSTASH
-        console.log(`[DEBUG] QStash Response ID: ${response.messageId}`);
-      } catch (e) {
-        // 3. LOG THE ERROR EXPLICITLY
-        console.error(`[DEBUG] QStash Publish Failed:`, e);
-      }
+      // 2. LOG THE RESPONSE FROM QSTASH
+      console.log(`[DEBUG] QStash Response ID: ${response.messageId}`);
     } else {
       console.log(`[DB] Message ${msg.id} already exists. Skipping save.`);
     }
