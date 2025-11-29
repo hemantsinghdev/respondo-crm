@@ -151,7 +151,7 @@ export async function handleMessageCreated(
         const response = await qstash.publishJSON({
           url: `https://respondo-crm.vercel.app/api/worker/message-processing`,
           body: payload,
-          retries: 5,
+          retries: 3,
         });
 
         // 2. LOG THE RESPONSE FROM QSTASH
