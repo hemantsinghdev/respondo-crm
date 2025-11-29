@@ -150,7 +150,7 @@ export async function handleMessageCreated(
       await qstash.publishJSON({
         url: `${process.env.BASE_URL}/api/worker/message-processing`,
         body: payload,
-        retries: 5,
+        retries: 3,
       });
     } else {
       console.log(`[DB] Message ${msg.id} already exists. Skipping save.`);
