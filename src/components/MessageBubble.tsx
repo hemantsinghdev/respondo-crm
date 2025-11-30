@@ -4,20 +4,15 @@
 import React, { useState } from "react";
 import { Paper, Box, Typography, Avatar } from "@mui/material";
 import { EmailOutlined, Drafts } from "@mui/icons-material";
+import { MessageDTO } from "@/types/tickets";
 
-export interface IMessageLean {
-  _id: string;
-  body: string;
-  summary: string;
-  from: { name?: string; email?: string }[];
-  date: string; // ISO
-}
+type IMsg = Pick<MessageDTO, "_id" | "body" | "summary" | "from" | "date">
 
 export default function MessageBubble({
   msg,
   isAgent,
 }: {
-  msg: IMessageLean;
+  msg: IMsg;
   isAgent: boolean;
 }) {
   const [showFullBody, setShowFullBody] = useState(false);
@@ -69,7 +64,7 @@ export default function MessageBubble({
             {isAgent ? "You (Agent)" : msg.from?.[0]?.name || msg.from?.[0]?.email || "Customer"}
           </Typography>
           <Typography variant="caption" sx={{ color: metaColor }}>
-            {new Date(msg.date).toLocaleString([], { hour: "2-digit", minute: "2-digit" })}
+            {new Date(msg.date).toLocaleString([], { hour: "2-digit", minute: "2-digit" }).toLocaleUpperCase()}
           </Typography>
         </Box>
 

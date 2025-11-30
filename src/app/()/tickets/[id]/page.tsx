@@ -1,6 +1,6 @@
 // app/tickets/[id]/page.tsx
 import React from "react";
-import { getTicketDetails, ILeanMessage, ILeanThread } from "@/services/ticketServices";
+import { getTicketDetails} from "@/services/ticketServices";
 import { auth } from "@/auth";
 import { Container, Box, Typography, Chip, Paper } from "@mui/material";
 import MessageBubble from "@/components/MessageBubble";
@@ -34,10 +34,7 @@ export default async function TicketDetailPage({
     );
   }
 
-  const { thread, messages } = data as {
-    thread: ILeanThread & { subject?: string; status?: string; customer?: { name?: string; email?: string } };
-    messages: ILeanMessage[];
-  };
+  const { thread, messages } = data;
 
   return (
     <Box
