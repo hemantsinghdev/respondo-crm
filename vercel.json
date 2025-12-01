@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "./src/actions/ingestion.ts": {
+      "maxDuration": 60
+    }
+  }
+}

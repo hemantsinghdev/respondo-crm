@@ -16,6 +16,24 @@ const emailSchema = {
   required: ["clean_body", "summary"],
 };
 
+const faqSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      question: {
+        type: "string",
+        description: "The cleaned, standalone question text.",
+      },
+      answer: {
+        type: "string",
+        description: "The complete, corresponding answer text.",
+      },
+    },
+    required: ["question", "answer"],
+  },
+};
+
 export async function processEmailContent(rawHtmlBody: string) {
   try {
     const prompt = `
@@ -44,10 +62,38 @@ export async function processEmailContent(rawHtmlBody: string) {
     if (response) {
       return JSON.parse(response);
     } else {
-      new Error("Unable to Get Response From Gemini");
+      throw new Error("Unable to Get Response From Gemini");
     }
   } catch (error) {
     console.error("[GEMINI] Error processing email:", error);
     return { clean_body: rawHtmlBody, summary: "Summary unavailable" };
+  }
+}
+
+export async function parseFileContent(fileContent: string) {
+  try {
+    const prompt = `
+      Analyze the following raw text content, and extract the content into a structured JSON array of objects. Each object MUST have a 'question' property and an 'answer' property. Ignore any introductory or extraneous text.
+    `;
+
+    const result = await ai.generateContent({
+      model: GEMINI_MODEL,
+      contents: [prompt, fileContent],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: faqSchema,
+      },
+    });
+
+    const response = result.text;
+    console.log("this is the response: ", response);
+    if (response) {
+      return JSON.parse(response);
+    } else {
+      throw new Error("Unable to Get Response From Gemini");
+    }
+  } catch (error) {
+    console.error("[GEMINI] Error processing email:", error);
+    return [];
   }
 }

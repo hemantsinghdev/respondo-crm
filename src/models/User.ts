@@ -9,6 +9,7 @@ export interface IUser extends Document {
   passwordHash: string;
   nylasGrantId?: string;
   isEmailConnected: boolean;
+  faqUploaded: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,11 @@ const UserSchema = new Schema<IUser>(
       sparse: true,
     },
     isEmailConnected: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    faqUploaded: {
       type: Boolean,
       default: false,
       required: true,

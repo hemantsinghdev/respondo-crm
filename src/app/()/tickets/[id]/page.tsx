@@ -14,8 +14,9 @@ export default async function TicketDetailPage({
   const id = query.id;
   const session = await auth();
   const agentEmail = session?.user?.email;
+  const userId = session?.user.id;
 
-  if (!agentEmail) {
+  if (!agentEmail || !userId) {
     return (
       <Container>
         <Typography color="error">Error: Agent email not found. Please sign in.</Typography>
@@ -34,52 +35,6 @@ export default async function TicketDetailPage({
   }
 
   const { thread, messages } = data;
-
-  const handleSendReply: (value: string) => Promise<{ success: boolean }> = async (
-  value: string
-) => {
-  "use server";
-
-  const requestBody = {
-    subject: thread.subject,
-    body: value,
-    to: [
-      {
-        name: thread.customerParticipant.name,
-        email: thread.customerParticipant.email,
-      },
-    ],
-    reply_to_message_id: thread.lastMessageId,
-  };
-  
-  const userId = session.user.id;
-
-  const payload = { 
-      userId, 
-      requestBody
-  };
-
-  try {
-    const response = await fetch(`${process.env.BASE_URL}/api/nylas/send-reply`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("API Error:", response.status, errorData.error);
-      return { success: false };
-    }
-
-    return { success: true };
-  } catch (e) {
-    console.error("Network or Unexpected Error:", e);
-    return { success: false };
-  }
-};
 
   return (
     <Box
@@ -171,7 +126,7 @@ export default async function TicketDetailPage({
             maxWidth: "1200px",
           }}
         >
-          <ReplyBox sendReply={handleSendReply} agentEmail={agentEmail} />
+          <ReplyBox thread={thread} userId={userId} agentEmail={agentEmail} />
         </Box>
       </Container>
     </Box>

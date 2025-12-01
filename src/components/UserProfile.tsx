@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { updateProfile, disconnectNylas, sendPasswordResetEmail, handleSignOut } from '@/app/()/profile/actions';
+import { updateProfile, disconnectNylas, sendPasswordResetEmail, handleSignOut } from '@/actions/profileActions';
 
 interface UserData {
     id: string; 

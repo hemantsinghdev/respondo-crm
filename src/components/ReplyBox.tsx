@@ -5,12 +5,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Paper, Box, TextField, Button, Typography } from "@mui/material";
 import { Send } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
+import { ThreadDTO } from "@/types/tickets";
 
 export default function ReplyBox({
-  sendReply,
+  thread,
+  userId,
   agentEmail,
 }: {
-  sendReply: (value:string) => Promise<{success:boolean}>,
+  thread: ThreadDTO;
+  userId: string;
   agentEmail: string;
 }) {
   const [value, setValue] = useState("");
@@ -35,7 +38,24 @@ export default function ReplyBox({
   async function submit() {
     if (!value.trim() || sending) return;
     setSending(true);
-      const res = await sendReply(value);
+
+    const requestBody = {
+    subject: thread.subject,
+    body: value,
+    to: [
+      {
+        name: thread.customerParticipant.name,
+        email: thread.customerParticipant.email,
+      },
+    ],
+    reply_to_message_id: thread.lastMessageId,
+  };
+
+  const payload = { 
+      userId, 
+      requestBody
+  };
+      const res = await sendReply(payload);
 
       if (!res.success) {
         console.error("Failed to send reply");

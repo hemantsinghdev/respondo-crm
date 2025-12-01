@@ -1,7 +1,6 @@
 import React from "react";
-import { Avatar, Box, List, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
-import HomeIcon from "@mui/icons-material/Home";
-import InboxIcon from "@mui/icons-material/Inbox";
+import { Avatar, Box, List, ListItemButton, ListItemIcon } from "@mui/material";
+import {Home, Inbox, Settings} from "@mui/icons-material"
 import { auth } from "@/auth";
 
 export default async function LeftNav() {
@@ -14,10 +13,13 @@ export default async function LeftNav() {
           <Avatar>{name}</Avatar>
         </ListItemButton>
         <ListItemButton href="/">
-          <ListItemIcon><HomeIcon /></ListItemIcon>
+          <ListItemIcon><Home /></ListItemIcon>
         </ListItemButton>
         <ListItemButton href="/tickets">
-          <ListItemIcon><InboxIcon /></ListItemIcon>
+          <ListItemIcon><Inbox /></ListItemIcon>
+        </ListItemButton>
+        <ListItemButton href="/settings">
+          <ListItemIcon><Settings /></ListItemIcon>
         </ListItemButton>
       </List>
     </Box>

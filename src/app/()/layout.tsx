@@ -1,11 +1,15 @@
 import React from "react";
-import Shell from "@/components/Shell";
+import { Box } from "@mui/material";
+import LeftNav from "@/components/LeftNav";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-            <Shell>{children}</Shell>
+            <Box display="flex" minHeight="100vh" bgcolor="background.default">
+      <LeftNav />
+      <Box component="main" flex={1}>{children}</Box>
+    </Box>
       </body>
     </html>
   );
