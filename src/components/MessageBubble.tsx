@@ -23,8 +23,10 @@ export default function MessageBubble({
 
   const isTogglable = Boolean(msg.body && msg.summary && msg.body !== msg.summary);
 
-  const avatarBg = isAgent ? "#2563EB" : "#F97316"; // blue vs orange
-  const bubbleBg = isAgent ? "linear-gradient(180deg,#0f172a10,#0ea5a400)" : "#0b1220"; // subtle diff
+  // const avatarBg = isAgent ? "#2563EB" : "#F97316"; // blue vs orange
+  // const bubbleBg = isAgent ? "linear-gradient(180deg,#0f172a10,#0ea5a400)" : "#0b1220"; // subtle diff
+  const avatarBg = isAgent ? "#4A4A4A" : "#757575"; 
+  const bubbleBg = isAgent ? "linear-gradient(180deg,#0f172a10,#0ea5a400)" : "#0b1220";
   const bubbleColor = "#E6EEF8"; // light text on dark bubble
   const metaColor = "rgba(230,238,248,0.65)";
 
@@ -77,7 +79,8 @@ export default function MessageBubble({
             borderRadius: 2.5,
             borderBottomRightRadius: isAgent ? 0.6 : 2.5,
             borderBottomLeftRadius: isAgent ? 2.5 : 0.6,
-            background: isAgent ? "linear-gradient(180deg,#143f6c,#1e3a8a)" : "#0f172a",
+            // background: isAgent ? "linear-gradient(180deg,#143f6c,#1e3a8a)" : "#0f172a",
+            background: isAgent ? "#2A2A2A" : "#1C1C1C",
             color: bubbleColor,
             cursor: isTogglable ? "pointer" : "default",
             boxShadow: "0 8px 24px rgba(2,6,23,0.6)",

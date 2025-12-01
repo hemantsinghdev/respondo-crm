@@ -52,7 +52,7 @@ export default function ReplyBox({
       sx={{
         p: 1,
         borderRadius: 2,
-        background: "#071023",
+        background: "#121212", //"#071023",
         color: "#fff",
         boxShadow: "0 12px 40px rgba(2,6,23,0.7)",
       }}
@@ -70,7 +70,7 @@ export default function ReplyBox({
           variant="filled"
           sx={{
             "& .MuiFilledInput-root": {
-              background: "#081428",
+              background: "#242424", //"#081428",
               borderRadius: 1.5,
               color: "#fff",
               padding: "6px 10px",
@@ -87,8 +87,8 @@ export default function ReplyBox({
             minWidth: 56,
             height: 44,
             borderRadius: 1.5,
-            background: "linear-gradient(180deg,#2563EB,#1D4ED8)",
-            boxShadow: "0 8px 20px rgba(37,99,235,0.18)",
+            background: "#333333", //"linear-gradient(180deg,#2563EB,#1D4ED8)",
+            boxShadow: "0 8px 20px rgba(37,99,235,0.08)", //"0 8px 20px rgba(37,99,235,0.18)",
             "&:hover": { filter: "brightness(0.95)" },
           }}
           variant="contained"

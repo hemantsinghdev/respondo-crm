@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Extract the Draft ID for sending
-    const draftId = draftResponse.requestId;
+    const draftId = draftResponse.data.id;
 
     if (!draftId) {
       throw new Error("Failed to create message draft in Nylas.");

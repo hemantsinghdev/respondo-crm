@@ -38,6 +38,8 @@ export default async function TicketDetailPage({
   const handleSendReply: (value: string) => Promise<{ success: boolean }> = async (
   value: string
 ) => {
+  "use server";
+
   const requestBody = {
     subject: thread.subject,
     body: value,
@@ -83,7 +85,7 @@ export default async function TicketDetailPage({
     <Box
       sx={{
         height: "100vh",
-        bgcolor: "#041021",
+        bgcolor: "#0A0A0A", //"#041021",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -95,7 +97,7 @@ export default async function TicketDetailPage({
         sx={{
           width: "70vw",
           height: "94vh",
-          background: "#071428",
+          background: "#121212", //"#071428",
           borderRadius: 2,
           p: 0,
           boxShadow: "0 20px 60px rgba(2,6,23,0.8)",
@@ -107,7 +109,7 @@ export default async function TicketDetailPage({
           elevation={0}
           sx={{
             p: 2.25,
-            background: "linear-gradient(90deg,#0b1220,#0b1530)",
+            background: "#1C1C1C", //"linear-gradient(90deg,#0b1220,#0b1530)",
             color: "#fff",
             borderBottom: "1px solid rgba(255,255,255,0.03)",
           }}

@@ -23,7 +23,7 @@ export async function processEmailContent(rawHtmlBody: string) {
       Input: A raw HTML email body containing a thread history.
       
       Task:
-      1. Extract ONLY the newest message in plain text form (remove all HTML). Remove all quoted text (e.g., "On [Date] wrote:", ">").
+      1. Extract ONLY the newest message. Remove all quoted text (e.g., "On [Date] wrote:", ">"). Convert this content to **strict plain text**, ensuring all HTML tags are completely removed.
       2. Remove standard signatures (e.g., "Best regards, Name").
       3. Summarize the main point of this specific new message.
       
