@@ -7,7 +7,12 @@ export interface IThread extends Document {
   subject: string;
   snippet: string;
   lastMessageDate: Date;
+  lastMessageId: string;
   participantEmails: string[];
+  customerParticipant: {
+    name: string;
+    email: string;
+  };
   isUnread: boolean;
   status: "open" | "closed";
   createdAt: Date;
@@ -32,7 +37,12 @@ const ThreadSchema = new Schema<IThread>(
     subject: { type: String },
     snippet: { type: String },
     lastMessageDate: { type: Date, required: true },
+    lastMessageId: { type: String, required: true },
     participantEmails: [{ type: String }],
+    customerParticipant: {
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+    },
     isUnread: { type: Boolean, default: false },
     status: { type: String, enum: ["open", "closed"], default: "open" },
   },

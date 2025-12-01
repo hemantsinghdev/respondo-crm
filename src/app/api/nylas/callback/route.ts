@@ -9,9 +9,8 @@ export async function GET(request: Request) {
   const userId = searchParams.get("state");
 
   if (!code || !userId) {
-    return NextResponse.json(
-      { error: "Missing code or state/userId in callback" },
-      { status: 400 }
+    return NextResponse.redirect(
+      new URL("/?status=error&message=nylas_error_occured", request.url)
     );
   }
 
@@ -38,19 +37,17 @@ export async function GET(request: Request) {
     if (!updatedUser) {
       console.error(`User not found for ID: ${userId}`);
       return NextResponse.redirect(
-        new URL("/dashboard?status=error&message=user_not_updated", request.url)
+        new URL("/?status=error&message=user_not_updated", request.url)
       );
     }
 
     console.log(`\nUser ${userId} updated successfully with new grantId.`);
 
-    return NextResponse.redirect(
-      new URL("/dashboard?status=success", request.url)
-    );
+    return NextResponse.redirect(new URL("/?status=success", request.url));
   } catch (error) {
     console.error("Error exchanging code for token or updating user:", error);
     return NextResponse.redirect(
-      new URL("/dashboard?status=error&message=auth_failed", request.url)
+      new URL("/?status=error&message=auth_failed", request.url)
     );
   }
 }

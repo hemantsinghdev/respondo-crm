@@ -60,7 +60,6 @@ export async function handleMessageCreated(
       );
       return;
     }
-
     const customerEmail = customerParticipant.email.toLowerCase();
     const customerName =
       customerParticipant.name || customerEmail.split("@")[0];
@@ -105,7 +104,9 @@ export async function handleMessageCreated(
         subject: msg.subject,
         snippet: msg.snippet,
         lastMessageDate: messageDate,
+        lastMessageId: nylasMessageId,
         participantEmails: allParticipants.map((p) => p.email),
+        customerParticipant: customerParticipant,
         isUnread: msg.unread,
       });
       console.log(
@@ -115,6 +116,7 @@ export async function handleMessageCreated(
       // Update existing thread details
       thread.snippet = msg.snippet || thread.snippet;
       thread.lastMessageDate = messageDate;
+      thread.lastMessageId = nylasMessageId;
       thread.isUnread = msg.unread || true; // Mark unread on new message
       await thread.save();
       console.log(

@@ -7,10 +7,10 @@ import { Send } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
 export default function ReplyBox({
-  threadId,
+  sendReply,
   agentEmail,
 }: {
-  threadId: string;
+  sendReply: (value:string) => Promise<{success:boolean}>,
   agentEmail: string;
 }) {
   const [value, setValue] = useState("");
@@ -35,25 +35,15 @@ export default function ReplyBox({
   async function submit() {
     if (!value.trim() || sending) return;
     setSending(true);
-    try {
-      const res = await fetch(`/api/tickets/${encodeURIComponent(threadId)}/reply`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: value, from: agentEmail }),
-      });
+      const res = await sendReply(value);
 
-      if (!res.ok) {
-        console.error("Failed to send reply:", await res.text());
+      if (!res.success) {
+        console.error("Failed to send reply");
       } else {
-        // refresh to get new messages (server re-render)
         router.refresh();
         setValue("");
       }
-    } catch (err) {
-      console.error("send error", err);
-    } finally {
       setSending(false);
-    }
   }
 
   return (
@@ -75,7 +65,7 @@ export default function ReplyBox({
           placeholder="Type your reply... (Enter to send, Shift+Enter for newline)"
           multiline
           minRows={1}
-          maxRows={6}
+          maxRows={10}
           fullWidth
           variant="filled"
           sx={{
