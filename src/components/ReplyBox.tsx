@@ -11,12 +11,14 @@ export default function ReplyBox({
   thread,
   userId,
   agentEmail,
+  autoResponse,
 }: {
   thread: ThreadDTO;
   userId: string;
   agentEmail: string;
+  autoResponse?: string;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(autoResponse || "");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const router = useRouter();

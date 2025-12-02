@@ -124,18 +124,23 @@ export async function handleMessageCreated(
       );
     }
 
-    // 6. Process Message
+    // 6. Process Message - Job Queue
     console.log(
       `[DB] Checking for existing Message with nylasMessageId: ${msg.id}`
     );
     const existingMessage = await Message.findOne({ nylasMessageId: msg.id });
 
     if (!existingMessage) {
+      const isSentBySystemUser = (msg.from || []).some(
+        (p: any) =>
+          p.email && p.email.toLowerCase() === user.email.toLowerCase()
+      );
+
       console.log(
         `[QSTASH] Enqueuing message processing task for ID: ${msg.id}`
       );
 
-      const payload = {
+      const messagePayload = {
         thread: thread._id,
         nylasMessageId: msg.id,
         from: msg.from,
@@ -147,6 +152,12 @@ export async function handleMessageCreated(
         body: msg.body,
         attachments: msg.attachments,
         date: messageDate,
+      };
+
+      const payload = {
+        messagePayload,
+        userId: user._id,
+        isCustomerMessage: !isSentBySystemUser,
       };
 
       const response = await qstash.publishJSON({
@@ -168,10 +179,22 @@ export async function handleMessageCreated(
 
 export async function saveProcessedMessage(payload: IMessage) {
   await connectToDB();
+  try {
+    const message = await Message.create(payload);
 
-  await Message.create(payload);
-
-  console.log(
-    `[DB] Saved new Message (ID: ${payload.nylasMessageId}) to Thread ${payload.thread}.`
-  );
+    if (message && message._id) {
+      console.log(
+        `[DB] Saved new Message (ID: ${payload.nylasMessageId}) to Thread ${payload.thread}.`
+      );
+      return { messageId: message._id, messageSummary: message.summary };
+    } else {
+      console.log("[DB] Saved Message not found");
+      throw new Error("Database operation failed during message save.");
+    }
+  } catch (err) {
+    console.error("[DB] Failed to save the message : ", err);
+    const errorMessage =
+      err instanceof Error ? err.message : "Some error occured";
+    throw new Error(errorMessage);
+  }
 }

@@ -4,6 +4,7 @@ import { ingestFaqData } from "@/services/vectorServices";
 import { parseFileContent } from "@/services/aiServices";
 import { setFaqUploaded } from "./user";
 import { extractTextFromFile } from "@/utils/fileProcessor";
+import vectorIndex from "@/lib/vectorIndex";
 
 type IngestionResult = {
   success: boolean;
@@ -76,5 +77,20 @@ export async function processAndIngestData(
       success: false,
       message: `Ingestion failed due to a database error: ${errorMessage}`,
     };
+  }
+}
+
+export async function deleteKnowledgeBase(userId: string) {
+  try {
+    const responseReset = await vectorIndex.reset({ namespace: userId });
+
+    if (responseReset === "Success") {
+      await setFaqUploaded(userId, false);
+      return { success: true };
+    } else {
+      return { success: false };
+    }
+  } catch (error) {
+    throw error;
   }
 }

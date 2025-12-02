@@ -12,6 +12,7 @@ export interface IMessage extends Document {
   snippet: string;
   body: string;
   summary: string;
+  response?: string;
   attachments: Attachment[];
   date: Date;
   createdAt: Date;
@@ -30,9 +31,11 @@ const MessageSchema = new Schema<IMessage>(
     to: [{ name: String, email: String }],
     cc: [{ name: String, email: String }],
     bcc: [{ name: String, email: String }],
-    subject: { type: String },
-    snippet: { type: String },
-    summary: { type: String },
+    subject: { type: String, required: true },
+    snippet: { type: String, required: true },
+    summary: { type: String, required: true },
+    response: { type: String },
+    body: { type: String, required: true },
     attachments: [
       {
         id: String,
@@ -42,7 +45,6 @@ const MessageSchema = new Schema<IMessage>(
         contentId: String,
       },
     ],
-    body: { type: String },
     date: { type: Date, required: true },
   },
   { collection: "messages", timestamps: true }

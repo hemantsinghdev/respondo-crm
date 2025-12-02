@@ -1,17 +1,18 @@
 "use client";
 
-import { Alert, Box, Button, CircularProgress, Paper, Typography } from "@mui/material";
-import {CheckCircleOutline, UploadFile, Block} from "@mui/icons-material";
+import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Paper, Typography } from "@mui/material";
+import {CheckCircleOutline, UploadFile, Block, DeleteForever} from "@mui/icons-material";
 import { useState, useEffect, useRef } from "react";
-import { processAndIngestData } from "@/actions/ingestion"; 
+import { processAndIngestData, deleteKnowledgeBase } from "@/actions/ingestion"; 
 import { getFaqUploadStatus } from "@/actions/user";
 
 export default function KnowledgeBaseSettings({userId} : {userId : string}){
-    // We only need state for UI elements and status, not for file content
     const [fileName, setFileName] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false); // Renamed from isUploading
+    const [isSubmitting, setIsSubmitting] = useState(false); // For Ingestion
+    const [isDeleting, setIsDeleting] = useState(false); // For Deletion
     const [message, setMessage] = useState('');
     const [faqUploaded, setFaqUploaded] = useState<boolean | null>(null); // null means loading
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false); //Dialog Box
     
     // Create a ref for the file input to access the file easily
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,6 +20,7 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
     const isFileIngested = faqUploaded === true;
     const isLoadingStatus = faqUploaded === null;
     const isUploadDisabled = isSubmitting || isLoadingStatus || isFileIngested;
+    const isDeleteDisabled = isDeleting || isLoadingStatus || !isFileIngested;
 
 
     // 1. Fetch initial status on component mount
@@ -26,9 +28,9 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
         const fetchStatus = async () => {
             const status = await getFaqUploadStatus(userId);
             setFaqUploaded(status);
-            if (status) {
-                setMessage("✅ Knowledge Base already uploaded. To upload a new file, you must first delete the existing one.");
-            }
+            // if (status) {
+            //     setMessage("✅ Knowledge Base already uploaded. To upload a new file, you must first delete the existing one.");
+            // }
         };
 
         if (userId) {
@@ -60,7 +62,6 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
     
     
     // 3. Handle Form Submission (Server Action Call)
-    // The Server Action must be defined here to handle the form submission
     const handleIngest = async (formData: FormData) => {
         if (isUploadDisabled) {
             setMessage("Ingestion is currently disabled.");
@@ -105,6 +106,46 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
         }
     };
 
+    // 4. Handle Deletion (You will implement the Server Action for this)
+    const handleDeleteClick = () => {
+        if (isDeleteDisabled) {
+            setMessage("Deletion is currently disabled.");
+            return;
+        }
+        setIsConfirmOpen(true);
+    };
+
+    const handleClose = () => {
+        setIsConfirmOpen(false);
+    };
+
+    const handleDeleteConfirm = async () => {
+        handleClose();
+
+        setIsDeleting(true);
+        setMessage("Initiating knowledge base deletion. Please wait...");
+        
+        try {
+            const result = await deleteKnowledgeBase(userId);
+
+            let finalMessage;
+            if (result.success) {
+                finalMessage = 'Knowledge Base Deleted Successfully';
+                setFaqUploaded(false); 
+            } else {
+                finalMessage = 'Unable to Delete Knowledge Base';
+            }
+
+            setMessage(finalMessage);
+
+        } catch (error) {
+            console.error("Final Deletion Error:", error);
+            setMessage(`Deletion failed: An unexpected error occurred.`);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     // --- Render Logic (using a form) ---
     const isLoading = isLoadingStatus || isSubmitting;
     const buttonDisabled = isLoading || !fileName;
@@ -113,7 +154,7 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
         // ... (StatusDisplay component remains the same for loading/success banners) ...
         if (isLoadingStatus) {
             return (
-                <Alert severity="info" sx={{ mt: 3, borderRadius: 2 }}>
+                <Alert severity="info" sx={{ my: 3, borderRadius: 2 }}>
                     <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
                     <Typography component="span">Checking current knowledge base status...</Typography>
                 </Alert>
@@ -121,7 +162,7 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
         }
         if (isFileIngested) {
             return (
-                <Alert severity="success" icon={<CheckCircleOutline fontSize="inherit" />} sx={{ mt: 3, borderRadius: 2 }}>
+                <Alert severity="success" icon={<CheckCircleOutline fontSize="inherit" />} sx={{ my: 3, borderRadius: 2 }}>
                     <Typography component="span" sx={{ fontWeight: 'bold' }}>Knowledge Base Uploaded:</Typography> The file ingestion process is complete and the knowledge base is active.
                 </Alert>
             );
@@ -148,6 +189,18 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
                 }}>
                     Knowledge Base Settings
                 </Typography>
+
+                {/* Display the DB status or the regular message */}
+                    <StatusDisplay />
+                    {message && !isLoadingStatus && (
+                        <Alert 
+                            severity={message.includes('Success') || message.includes('queued') ? 'success' : (message.includes('failed') ? 'error' : 'info')} 
+                            icon={message.includes('Success') || message.includes('queued') ? <CheckCircleOutline fontSize="inherit" /> : undefined}
+                            sx={{ my: 3, borderRadius: 2 }}
+                        >
+                            {message}
+                        </Alert>
+                    )}
 
                 <Paper variant="outlined" sx={{ 
                     p: 3, mb: 4, 
@@ -220,7 +273,8 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
                                         textTransform: 'none',
                                         bgcolor: '#4CAF50',
                                         color: '#121212',
-                                        '&:hover': { bgcolor: '#388E3C' }
+                                        '&:hover': { bgcolor: '#388E3C' },
+                                        cursor: (buttonDisabled) ? 'not-allowed' : 'pointer',
                                     }}
                                 >
                                     {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Ingest Data'}
@@ -228,20 +282,90 @@ export default function KnowledgeBaseSettings({userId} : {userId : string}){
                             </Box>
                         </Box>
                     </form>
+                </Paper>
+                
+                <Paper variant="outlined" sx={{ 
+                    p: 3, 
+                    mb: 2, 
+                    bgcolor: '#2E2E2E',
+                    borderColor: isFileIngested ? '#F44336' : '#9E9E9E',
+                    borderRadius: 3 
+                }}>
+                    <Typography variant="h5" component="h2" mb={2} sx={{ fontWeight: 600, color: '#E0E0E0' }}>
+                        Delete Knowledge Base 🗑️
+                    </Typography>
                     
-                    {/* Display the DB status or the regular message */}
-                    <StatusDisplay />
-                    {message && !isLoadingStatus && (
-                        <Alert 
-                            severity={message.includes('Success') || message.includes('queued') ? 'success' : (message.includes('failed') ? 'error' : 'info')} 
-                            icon={message.includes('Success') || message.includes('queued') ? <CheckCircleOutline fontSize="inherit" /> : undefined}
-                            sx={{ mt: 3, borderRadius: 2 }}
-                        >
-                            {message}
-                        </Alert>
-                    )}
+                    <Typography variant="body2" sx={{ color: '#BDBDBD', mb: 3 }}>
+                        This action will **permanently delete all ingested data** associated with your knowledge base. Your custom AI will revert to its default settings.
+                    </Typography>
+
+                    <Button
+                        onClick={handleDeleteClick}
+                        disabled={isDeleteDisabled}
+                        variant="contained"
+                        startIcon={isDeleting ? <CircularProgress size={20} color="inherit" /> : <DeleteForever />}
+                        fullWidth
+                        sx={{
+                            borderRadius: 8, 
+                            py: 1.5, 
+                            textTransform: 'none',
+                            bgcolor: '#F44336', // Red color for delete
+                            color: '#121212',
+                            '&:hover': { bgcolor: '#D32F2F' },
+                            opacity: isDeleteDisabled ? 0.5 : 1,
+                            cursor: isDeleteDisabled ? 'not-allowed' : 'pointer',
+                        }}
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete All Knowledge Base Data'}
+                    </Button>
+
                 </Paper>
             </Paper>
+
+            {/* --- DELETION CONFIRMATION DIALOG --- */}
+            <Dialog
+                open={isConfirmOpen}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+                slotProps={{
+                    paper: {
+                        sx: {
+                            bgcolor: 'black', //#2E2E2E', 
+                            color: '#E0E0E0',
+                            borderRadius: 3
+                        }
+                    }
+                }}
+            >
+                <DialogTitle id="alert-dialog-title" sx={{ color: '#F44336', fontWeight: 'bold' }}>
+                    {"Permanent Deletion Confirmation"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description" sx={{ color: '#BDBDBD' }}>
+                        Are you absolutely sure you want to **permanently delete** the entire knowledge base? 
+                        This action will remove all custom data and cannot be undone.
+                        Your custom AI will stop using this data immediately.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button 
+                        onClick={handleClose} 
+                        sx={{ color: '#4A90E2' }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleDeleteConfirm} 
+                        color="error" 
+                        variant="contained"
+                        autoFocus
+                        startIcon={<DeleteForever />}
+                    >
+                        Confirm Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
