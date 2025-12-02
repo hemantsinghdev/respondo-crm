@@ -35,7 +35,6 @@ export default async function TicketDetailPage({
   }
 
   const { thread, messages } = data;
-  console.log("\nLast message : ", messages.at(-1))
   const autoResponse = messages.at(-1)?.response;
 
   return (

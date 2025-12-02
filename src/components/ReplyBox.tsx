@@ -1,4 +1,3 @@
-// components/ReplyBox.tsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -6,6 +5,7 @@ import { Paper, Box, TextField, Button, Typography } from "@mui/material";
 import { Send } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ThreadDTO } from "@/types/tickets";
+import { sendReply } from "@/actions/ticketActions";
 
 export default function ReplyBox({
   thread,

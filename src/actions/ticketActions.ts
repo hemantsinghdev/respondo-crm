@@ -13,9 +13,9 @@ type TPayload = {
   };
 };
 
-const sendReply: (payload: TPayload) => Promise<{ success: boolean }> = async (
+export const sendReply: (
   payload: TPayload
-) => {
+) => Promise<{ success: boolean }> = async (payload: TPayload) => {
   console.log("[NYLAS REPLY] Request received");
   try {
     const response = await fetch(
